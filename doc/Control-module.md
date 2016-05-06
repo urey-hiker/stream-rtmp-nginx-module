@@ -26,9 +26,10 @@ Syntax:
 
 Example
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             application myapp {
                 live on;
                 recorder rec1 {

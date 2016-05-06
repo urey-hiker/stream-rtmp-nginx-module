@@ -6,23 +6,17 @@ CD to build directory (home)
 
 Download & unpack latest nginx-rtmp (you can also use http)
 
-    git clone git://github.com/arut/nginx-rtmp-module.git
+    git clone https://github.com/xunen/stream-rtmp-nginx-module.git
 
 Download & unpack nginx (you can also use svn)
 
-    wget http://nginx.org/download/nginx-1.2.4.tar.gz
-    tar xzf nginx-1.2.4.tar.gz
-    cd nginx-1.2.4
+    wget http://nginx.org/download/nginx-1.9.0.tar.gz
+    tar xzf nginx-1.9.0.tar.gz
+    cd nginx-1.9.0
 
-Build nginx with nginx-rtmp
+Build nginx with stream-rtmp-nginx-module
 
-    ./configure --add-module=/usr/build/nginx-rtmp-module
-    make
-    make install
-
-For nginx 1.3.4-1.5.0 more options are needed
-
-    ./configure --add-module=/usr/build/nginx-rtmp-module --with-http_ssl_module
+    ./configure --with-stream --add-module=/usr/build/stream-rtmp-nginx-module
     make
     make install
 
@@ -89,9 +83,10 @@ Use this `nginx.conf` instead of stock config:
         }
     }
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             ping 30s;
             notify_method get;
     

@@ -1,8 +1,9 @@
 ### Simple Video-on-Demand
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             application vod {
                 play /var/flvs;
             }
@@ -11,9 +12,10 @@
 
 ### Simple live broadcast service
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             application live {
                 live on;
             }
@@ -22,9 +24,10 @@
 
 ### Re-translate remote stream
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             application tv {
                 live on;
                 pull rtmp://cdn.example.com:443/programs/main pageUrl=http://www.example.com/index.html name=maintv;
@@ -34,9 +37,10 @@
 
 ### Re-translate remote stream with HLS support
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
             application tv {
                 live on;
 

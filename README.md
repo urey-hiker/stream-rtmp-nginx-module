@@ -1,24 +1,6 @@
 # NGINX-based Media Streaming Server
-## nginx-rtmp-module
+## stream-rtmp-nginx-module
 
-
-### Project blog
-
-  http://nginx-rtmp.blogspot.com
-
-### Wiki manual
-
-  https://github.com/arut/nginx-rtmp-module/wiki/Directives
-
-### Google group
-
-  https://groups.google.com/group/nginx-rtmp
-
-  https://groups.google.com/group/nginx-rtmp-ru (Russian)
-
-### Donation page (Paypal etc)
-
-  http://arut.github.com/nginx-rtmp-module/
 
 ### Features
 
@@ -61,20 +43,21 @@
 
 cd to NGINX source directory & run this:
 
-    ./configure --add-module=/path/to/nginx-rtmp-module
+    ./configure --with-stream --add-module=/path/to/stream-rtmp-nginx-module
     make
     make install
 
-Several versions of nginx (1.3.14 - 1.5.0) require http_ssl_module to be
-added as well:
-
-    ./configure --add-module=/path/to/nginx-rtmp-module --with-http_ssl_module
-
 For building debug version of nginx add `--with-debug`
 
-    ./configure --add-module=/path/to-nginx/rtmp-module --with-debug
+    ./configure --with-stream --add-module=/path/to-nginx/stream-rtmp-nginx-module --with-debug
 
-[Read more about debug log](https://github.com/arut/nginx-rtmp-module/wiki/Debug-log)
+After compiling set nginx error.log level to *debug* in nginx.conf
+
+    error_log logs/error.log debug;
+
+### version require
+
+nginx > 1.9.0 for stream support
 
 ### Windows limitations
 
@@ -105,12 +88,12 @@ rtmp_auto_push directive.
 
 ### Example nginx.conf
 
-    rtmp {
+    stream {
 
         server {
 
             listen 1935;
-
+            rtmp;
             chunk_size 4000;
 
             # TV mode: one publisher, many subscribers
@@ -321,9 +304,10 @@ rtmp_auto_push directive.
 
     rtmp_auto_push on;
 
-    rtmp {
+    stream {
         server {
             listen 1935;
+            rtmp;
 
             application mytv {
                 live on;
