@@ -72,14 +72,11 @@ static ngx_command_t  ngx_rtmp_netcall_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_netcall_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_netcall_postconfiguration,     /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     ngx_rtmp_netcall_create_srv_conf,       /* create server configuration */
-    ngx_rtmp_netcall_merge_srv_conf,        /* merge server configuration */
-    NULL,                                   /* create app configuration */
-    NULL                                    /* merge app configuration */
+    ngx_rtmp_netcall_merge_srv_conf         /* merge server configuration */
 };
 
 

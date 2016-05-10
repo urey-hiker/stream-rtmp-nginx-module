@@ -6,6 +6,8 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+
+
 #include "ngx_rtmp_live_module.h"
 #include "ngx_rtmp_cmd_module.h"
 #include "ngx_rtmp_codec_module.h"
@@ -32,77 +34,77 @@ static void ngx_rtmp_live_stop(ngx_rtmp_session_t *s);
 static ngx_command_t  ngx_rtmp_live_commands[] = {
 
     { ngx_string("live"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, live),
       NULL },
 
     { ngx_string("stream_buckets"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_str_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, nbuckets),
       NULL },
 
     { ngx_string("buffer"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, buflen),
       NULL },
 
     { ngx_string("sync"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_live_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, sync),
       NULL },
 
     { ngx_string("interleave"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, interleave),
       NULL },
 
     { ngx_string("wait_key"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, wait_key),
       NULL },
 
     { ngx_string("wait_video"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, wait_video),
       NULL },
 
     { ngx_string("publish_notify"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, publish_notify),
       NULL },
 
     { ngx_string("play_restart"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, play_restart),
       NULL },
 
     { ngx_string("idle_streams"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, idle_streams),
       NULL },
 
     { ngx_string("drop_idle_publisher"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_live_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_live_app_conf_t, idle_timeout),
@@ -113,14 +115,11 @@ static ngx_command_t  ngx_rtmp_live_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_live_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_live_postconfiguration,        /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
     NULL,                                   /* merge server configuration */
-    ngx_rtmp_live_create_app_conf,          /* create app configuration */
-    ngx_rtmp_live_merge_app_conf            /* merge app configuration */
 };
 
 
@@ -136,7 +135,9 @@ ngx_module_t  ngx_rtmp_live_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_live_create_app_conf,
+    (uintptr_t)ngx_rtmp_live_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 

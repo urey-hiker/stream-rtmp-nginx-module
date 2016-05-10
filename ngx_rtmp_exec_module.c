@@ -153,7 +153,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 */
     { ngx_string("exec"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -161,7 +161,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_push"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -169,7 +169,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_pull"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -177,7 +177,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_publish"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -185,7 +185,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_publish_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -193,7 +193,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_play"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -201,7 +201,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_play_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -209,8 +209,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_record_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|
-                         NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, conf) +
@@ -218,21 +217,21 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_static"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_MAIN_CONF|NGX_CONF_1MORE,
       ngx_rtmp_exec_conf,
       NGX_RTMP_MAIN_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_main_conf_t, static_conf),
       NULL },
 
     { ngx_string("respawn"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, respawn),
       NULL },
 
     { ngx_string("respawn_timeout"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_MAIN_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_MAIN_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_main_conf_t, respawn_timeout),
@@ -246,7 +245,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
       NULL },
 
     { ngx_string("exec_options"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_exec_app_conf_t, options),
@@ -257,14 +256,11 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_exec_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_exec_postconfiguration,        /* postconfiguration */
     ngx_rtmp_exec_create_main_conf,         /* create main configuration */
     ngx_rtmp_exec_init_main_conf,           /* init main configuration */
     NULL,                                   /* create server configuration */
-    NULL,                                   /* merge server configuration */
-    ngx_rtmp_exec_create_app_conf,          /* create app configuration */
-    ngx_rtmp_exec_merge_app_conf            /* merge app configuration */
+    NULL                                    /* merge server configuration */
 };
 
 
@@ -280,7 +276,9 @@ ngx_module_t  ngx_rtmp_exec_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_exec_create_app_conf,
+    (uintptr_t)ngx_rtmp_exec_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 
@@ -562,47 +560,6 @@ ngx_rtmp_exec_merge_app_conf(ngx_conf_t *cf, void *parent, void *child)
 static ngx_int_t
 ngx_rtmp_exec_init_process(ngx_cycle_t *cycle)
 {
-#if !(NGX_WIN32)
-    ngx_rtmp_core_main_conf_t  *cmcf = ngx_rtmp_core_main_conf;
-    ngx_rtmp_core_srv_conf_t  **cscf;
-    ngx_rtmp_conf_ctx_t        *cctx;
-    ngx_rtmp_exec_main_conf_t  *emcf;
-    ngx_rtmp_exec_t            *e;
-    ngx_uint_t                  n;
-
-    if (cmcf == NULL || cmcf->servers.nelts == 0) {
-        return NGX_OK;
-    }
-
-    /* execs are always started by the first worker */
-    if (ngx_process_slot) {
-        return NGX_OK;
-    }
-
-    cscf = cmcf->servers.elts;
-    cctx = (*cscf)->ctx;
-    emcf = cctx->main_conf[ngx_rtmp_exec_module.ctx_index];
-
-    /* FreeBSD note:
-     * When worker is restarted, child process (ffmpeg) will
-     * not be terminated if it's connected to another
-     * (still alive) worker. That leads to starting
-     * another instance of exec_static process.
-     * Need to kill previously started processes.
-     *
-     * On Linux "prctl" syscall is used to kill child
-     * when nginx worker is terminated.
-     */
-
-    e = emcf->static_exec.elts;
-    for (n = 0; n < emcf->static_exec.nelts; ++n, ++e) {
-        e->respawn_evt.data = e;
-        e->respawn_evt.log = e->log;
-        e->respawn_evt.handler = ngx_rtmp_exec_respawn;
-        ngx_post_event((&e->respawn_evt), &ngx_rtmp_init_queue);
-    }
-#endif
-
     return NGX_OK;
 }
 
@@ -1474,7 +1431,7 @@ ngx_rtmp_exec_block(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ctx->main_conf = pctx->main_conf;
     ctx->srv_conf  = pctx->srv_conf;
 
-    ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_rtmp_max_module);
+    ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_stream_max_module);
     if (ctx->app_conf == NULL) {
         return NGX_CONF_ERROR;
     }

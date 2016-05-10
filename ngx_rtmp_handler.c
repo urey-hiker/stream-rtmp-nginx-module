@@ -152,7 +152,7 @@ ngx_rtmp_ping(ngx_event_t *pev)
     ngx_rtmp_core_srv_conf_t   *cscf;
 
     c = pev->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
 
     cscf = ngx_rtmp_get_module_srv_conf(s, ngx_rtmp_core_module);
 
@@ -206,7 +206,7 @@ ngx_rtmp_recv(ngx_event_t *rev)
     uint32_t                    csid, timestamp;
 
     c = rev->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
     b = NULL;
     old_pos = NULL;
     old_size = 0;
@@ -495,7 +495,7 @@ ngx_rtmp_send(ngx_event_t *wev)
     ngx_rtmp_core_srv_conf_t   *cscf;
 
     c = wev->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
 
     if (c->destroyed) {
         return;

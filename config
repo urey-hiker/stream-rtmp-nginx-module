@@ -1,4 +1,4 @@
-ngx_addon_name="ngx_rtmp_module"
+ngx_addon_name="ngx_stream_rtmp_module"
 
 RTMP_CORE_MODULES="                                         \
                 ngx_rtmp_module                             \
@@ -20,6 +20,7 @@ RTMP_CORE_MODULES="                                         \
                 ngx_rtmp_limit_module                       \
                 ngx_rtmp_hls_module                         \
                 ngx_rtmp_dash_module                        \
+                ngx_rtmp_post_module                        \
                 "
 
 
@@ -79,6 +80,7 @@ RTMP_CORE_SRCS="                                            \
                 $ngx_addon_dir/ngx_rtmp_limit_module.c      \
                 $ngx_addon_dir/ngx_rtmp_bitop.c             \
                 $ngx_addon_dir/ngx_rtmp_proxy_protocol.c    \
+                $ngx_addon_dir/ngx_rtmp_post_module.c       \
                 $ngx_addon_dir/hls/ngx_rtmp_hls_module.c    \
                 $ngx_addon_dir/dash/ngx_rtmp_dash_module.c  \
                 $ngx_addon_dir/hls/ngx_rtmp_mpegts.c        \
@@ -96,8 +98,8 @@ if [ -f auto/module ] ; then
     ngx_module_deps=$RTMP_DEPS
 
     if [ $ngx_module_link = DYNAMIC ] ; then
-        ngx_module_name="$RTMP_CORE_MODULES $RTMP_HTTP_MODULES"
-        ngx_module_srcs="$RTMP_CORE_SRCS $RTMP_HTTP_SRCS"
+        ngx_module_name="$RTMP_CORE_MODULES"
+        ngx_module_srcs="$RTMP_CORE_SRCS"
 
         . auto/module
 
@@ -107,26 +109,16 @@ if [ -f auto/module ] ; then
         ngx_module_srcs=$RTMP_CORE_SRCS
 
         . auto/module
-
-
-        ngx_module_type=HTTP
-        ngx_module_name=$RTMP_HTTP_MODULES
-        ngx_module_incs=
-        ngx_module_deps=
-        ngx_module_srcs=$RTMP_HTTP_SRCS
-
-        . auto/module
     fi
 
 else
     CORE_MODULES="$CORE_MODULES $RTMP_CORE_MODULES"
-    HTTP_MODULES="$HTTP_MODULES $RTMP_HTTP_MODULES"
+    #HTTP_MODULES="$HTTP_MODULES $RTMP_HTTP_MODULES"
 
     NGX_ADDON_DEPS="$NGX_ADDON_DEPS $RTMP_DEPS"
-    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $RTMP_CORE_SRCS $RTMP_HTTP_SRCS"
+    NGX_ADDON_SRCS="$NGX_ADDON_SRCS $RTMP_CORE_SRCS"
 
     CFLAGS="$CFLAGS -I$ngx_addon_dir"
 fi
 
 USE_OPENSSL=YES
-

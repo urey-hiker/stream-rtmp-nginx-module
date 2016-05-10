@@ -6,6 +6,8 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+
+
 #include "ngx_rtmp_codec_module.h"
 #include "ngx_rtmp_live_module.h"
 #include "ngx_rtmp_cmd_module.h"
@@ -20,6 +22,7 @@
 static void * ngx_rtmp_codec_create_app_conf(ngx_conf_t *cf);
 static char * ngx_rtmp_codec_merge_app_conf(ngx_conf_t *cf,
        void *parent, void *child);
+static ngx_int_t ngx_rtmp_codec_init_module(ngx_cycle_t *cycle);
 static ngx_int_t ngx_rtmp_codec_postconfiguration(ngx_conf_t *cf);
 static ngx_int_t ngx_rtmp_codec_reconstruct_meta(ngx_rtmp_session_t *s);
 static ngx_int_t ngx_rtmp_codec_copy_meta(ngx_rtmp_session_t *s,
@@ -52,7 +55,7 @@ static ngx_conf_enum_t ngx_rtmp_codec_meta_slots[] = {
 static ngx_command_t  ngx_rtmp_codec_commands[] = {
 
     { ngx_string("meta"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_enum_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_codec_app_conf_t, meta),
@@ -63,14 +66,11 @@ static ngx_command_t  ngx_rtmp_codec_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_codec_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_codec_postconfiguration,       /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
     NULL,                                   /* merge server configuration */
-    ngx_rtmp_codec_create_app_conf,         /* create app configuration */
-    ngx_rtmp_codec_merge_app_conf           /* merge app configuration */
 };
 
 
@@ -80,7 +80,7 @@ ngx_module_t  ngx_rtmp_codec_module = {
     ngx_rtmp_codec_commands,                /* module directives */
     NGX_RTMP_MODULE,                        /* module type */
     NULL,                                   /* init master */
-    NULL,                                   /* init module */
+    ngx_rtmp_codec_init_module,             /* init module */
     NULL,                                   /* init process */
     NULL,                                   /* init thread */
     NULL,                                   /* exit thread */
@@ -915,6 +915,17 @@ ngx_rtmp_codec_merge_app_conf(ngx_conf_t *cf, void *parent, void *child)
     ngx_conf_merge_uint_value(conf->meta, prev->meta, NGX_RTMP_CODEC_META_ON);
 
     return NGX_CONF_OK;
+}
+
+
+static ngx_int_t
+ngx_rtmp_codec_init_module(ngx_cycle_t *cycle)
+{
+    ngx_rtmp_codec_module.spare_hook0 = NGX_RTMP_SIGNATURE_MODULE;
+    ngx_rtmp_codec_module.spare_hook1 = (uintptr_t)ngx_rtmp_codec_create_app_conf;
+    ngx_rtmp_codec_module.spare_hook2 = (uintptr_t)ngx_rtmp_codec_merge_app_conf;
+
+    return NGX_OK;
 }
 
 

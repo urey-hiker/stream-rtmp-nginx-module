@@ -57,14 +57,14 @@ typedef struct {
 static ngx_command_t  ngx_rtmp_access_commands[] = {
 
     { ngx_string("allow"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE12,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE12,
       ngx_rtmp_access_rule,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("deny"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE12,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE12,
       ngx_rtmp_access_rule,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
@@ -75,14 +75,11 @@ static ngx_command_t  ngx_rtmp_access_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_access_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_access_postconfiguration,      /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
     NULL,                                   /* merge server configuration */
-    ngx_rtmp_access_create_app_conf,        /* create app configuration */
-    ngx_rtmp_access_merge_app_conf,         /* merge app configuration */
 };
 
 
@@ -98,7 +95,9 @@ ngx_module_t  ngx_rtmp_access_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_access_create_app_conf,
+    (uintptr_t)ngx_rtmp_access_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 

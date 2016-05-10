@@ -12,7 +12,8 @@
 #include <ngx_core.h>
 #include <ngx_event.h>
 #include <ngx_event_connect.h>
-#include <nginx.h>
+#include <ngx_stream.h>
+
 
 #include "ngx_rtmp_amf.h"
 #include "ngx_rtmp_bandwidth.h"
@@ -25,93 +26,38 @@ typedef unsigned __int8     uint8_t;
 
 
 typedef struct {
-    void                  **main_conf;
-    void                  **srv_conf;
+    ngx_stream_conf_ctx_t  *stream_ctx;
     void                  **app_conf;
 } ngx_rtmp_conf_ctx_t;
 
 
-typedef struct {
-    u_char                  sockaddr[NGX_SOCKADDRLEN];
-    socklen_t               socklen;
-
-    /* server ctx */
-    ngx_rtmp_conf_ctx_t    *ctx;
-
-    unsigned                bind:1;
-    unsigned                wildcard:1;
-#if (NGX_HAVE_INET6 && defined IPV6_V6ONLY)
-    unsigned                ipv6only:2;
-#endif
-    unsigned                so_keepalive:2;
-    unsigned                proxy_protocol:1;
-#if (NGX_HAVE_KEEPALIVE_TUNABLE)
-    int                     tcp_keepidle;
-    int                     tcp_keepintvl;
-    int                     tcp_keepcnt;
-#endif
-} ngx_rtmp_listen_t;
+typedef ngx_stream_listen_t ngx_rtmp_listen_t;
 
 
-typedef struct {
-    ngx_rtmp_conf_ctx_t    *ctx;
-    ngx_str_t               addr_text;
-    unsigned                proxy_protocol:1;
-} ngx_rtmp_addr_conf_t;
+typedef ngx_stream_addr_conf_t ngx_rtmp_addr_conf_t;
 
-typedef struct {
-    in_addr_t               addr;
-    ngx_rtmp_addr_conf_t    conf;
-} ngx_rtmp_in_addr_t;
+typedef ngx_stream_in_addr_t ngx_rtmp_in_addr_t;
 
 
 #if (NGX_HAVE_INET6)
 
-typedef struct {
-    struct in6_addr         addr6;
-    ngx_rtmp_addr_conf_t    conf;
-} ngx_rtmp_in6_addr_t;
+typedef ngx_stream_in6_addr_t ngx_rtmp_in6_addr_t;
 
 #endif
 
 
-typedef struct {
-    void                   *addrs;
-    ngx_uint_t              naddrs;
-} ngx_rtmp_port_t;
+typedef ngx_stream_port_t ngx_rtmp_port_t;
 
 
-typedef struct {
-    int                     family;
-    in_port_t               port;
-    ngx_array_t             addrs;       /* array of ngx_rtmp_conf_addr_t */
-} ngx_rtmp_conf_port_t;
+typedef ngx_stream_conf_port_t ngx_rtmp_conf_port_t;
 
 
-typedef struct {
-    struct sockaddr        *sockaddr;
-    socklen_t               socklen;
-
-    ngx_rtmp_conf_ctx_t    *ctx;
-
-    unsigned                bind:1;
-    unsigned                wildcard:1;
-#if (NGX_HAVE_INET6 && defined IPV6_V6ONLY)
-    unsigned                ipv6only:2;
-#endif
-    unsigned                so_keepalive:2;
-    unsigned                proxy_protocol:1;
-#if (NGX_HAVE_KEEPALIVE_TUNABLE)
-    int                     tcp_keepidle;
-    int                     tcp_keepintvl;
-    int                     tcp_keepcnt;
-#endif
-} ngx_rtmp_conf_addr_t;
+typedef ngx_stream_conf_addr_t ngx_rtmp_conf_addr_t;
 
 
 #define NGX_RTMP_VERSION                3
 
-#define NGX_LOG_DEBUG_RTMP              NGX_LOG_DEBUG_CORE
+#define NGX_LOG_DEBUG_RTMP              NGX_LOG_DEBUG_STREAM
 
 #define NGX_RTMP_DEFAULT_CHUNK_SIZE     128
 
@@ -290,14 +236,13 @@ typedef struct {
 
 
 typedef struct {
-    ngx_array_t             servers;    /* ngx_rtmp_core_srv_conf_t */
-    ngx_array_t             listen;     /* ngx_rtmp_listen_t */
-
     ngx_array_t             events[NGX_RTMP_MAX_EVENT];
 
     ngx_hash_t              amf_hash;
     ngx_array_t             amf_arrays;
     ngx_array_t             amf;
+
+    ngx_conf_t             *cf;
 } ngx_rtmp_core_main_conf_t;
 
 
@@ -311,7 +256,7 @@ typedef struct ngx_rtmp_core_srv_conf_s {
     ngx_msec_t              timeout;
     ngx_msec_t              ping;
     ngx_msec_t              ping_timeout;
-    ngx_flag_t              so_keepalive;
+    ngx_flag_t              proxy_protocol;
     ngx_int_t               max_streams;
 
     ngx_uint_t              ack_window;
@@ -345,32 +290,25 @@ typedef struct {
 } ngx_rtmp_error_log_ctx_t;
 
 
-typedef struct {
-    ngx_int_t             (*preconfiguration)(ngx_conf_t *cf);
-    ngx_int_t             (*postconfiguration)(ngx_conf_t *cf);
-
-    void                 *(*create_main_conf)(ngx_conf_t *cf);
-    char                 *(*init_main_conf)(ngx_conf_t *cf, void *conf);
-
-    void                 *(*create_srv_conf)(ngx_conf_t *cf);
-    char                 *(*merge_srv_conf)(ngx_conf_t *cf, void *prev,
-                                    void *conf);
-
-    void                 *(*create_app_conf)(ngx_conf_t *cf);
-    char                 *(*merge_app_conf)(ngx_conf_t *cf, void *prev,
-                                    void *conf);
-} ngx_rtmp_module_t;
-
-#define NGX_RTMP_MODULE                 0x504D5452     /* "RTMP" */
-
-#define NGX_RTMP_MAIN_CONF              0x02000000
-#define NGX_RTMP_SRV_CONF               0x04000000
-#define NGX_RTMP_APP_CONF               0x08000000
-#define NGX_RTMP_REC_CONF               0x10000000
+typedef ngx_stream_module_t ngx_rtmp_module_t;
 
 
-#define NGX_RTMP_MAIN_CONF_OFFSET  offsetof(ngx_rtmp_conf_ctx_t, main_conf)
-#define NGX_RTMP_SRV_CONF_OFFSET   offsetof(ngx_rtmp_conf_ctx_t, srv_conf)
+typedef void *(*ngx_rtmp_create_app_pt)(ngx_conf_t *);
+
+
+#define NGX_RTMP_SIGNATURE_MODULE       0x504D5452     /* "RTMP" */
+#define NGX_RTMP_MODULE_V1_PADDING      NGX_RTMP_SIGNATURE_MODULE, 0, 0, 0, 0, 0
+
+#define NGX_RTMP_MODULE                 NGX_STREAM_MODULE
+
+#define NGX_RTMP_MAIN_CONF              NGX_STREAM_MAIN_CONF
+#define NGX_RTMP_SRV_CONF               NGX_STREAM_SRV_CONF
+#define NGX_RTMP_APP_CONF               NGX_STREAM_UPS_CONF*2
+#define NGX_RTMP_REC_CONF               NGX_RTMP_APP_CONF*2
+
+
+#define NGX_RTMP_MAIN_CONF_OFFSET  NGX_STREAM_MAIN_CONF_OFFSET
+#define NGX_RTMP_SRV_CONF_OFFSET   NGX_STREAM_SRV_CONF_OFFSET
 #define NGX_RTMP_APP_CONF_OFFSET   offsetof(ngx_rtmp_conf_ctx_t, app_conf)
 
 
@@ -378,17 +316,20 @@ typedef struct {
 #define ngx_rtmp_set_ctx(s, c, module)         s->ctx[module.ctx_index] = c;
 #define ngx_rtmp_delete_ctx(s, module)         s->ctx[module.ctx_index] = NULL;
 
+#define ngx_rtmp_get_session(c)                              \
+    ngx_stream_get_module_ctx((ngx_stream_session_t *)c->data, ngx_rtmp_core_module)
 
 #define ngx_rtmp_get_module_main_conf(s, module)                             \
-    (s)->main_conf[module.ctx_index]
-#define ngx_rtmp_get_module_srv_conf(s, module)  (s)->srv_conf[module.ctx_index]
+    ngx_stream_get_module_main_conf((ngx_stream_session_t *)(s)->connection->data, module)
+#define ngx_rtmp_get_module_srv_conf(s, module)                              \
+    ngx_stream_get_module_srv_conf((ngx_stream_session_t *)(s)->connection->data, module)
 #define ngx_rtmp_get_module_app_conf(s, module)  ((s)->app_conf ? \
     (s)->app_conf[module.ctx_index] : NULL)
 
 #define ngx_rtmp_conf_get_module_main_conf(cf, module)                       \
-    ((ngx_rtmp_conf_ctx_t *) cf->ctx)->main_conf[module.ctx_index]
+    ngx_stream_conf_get_module_main_conf(cf, module)
 #define ngx_rtmp_conf_get_module_srv_conf(cf, module)                        \
-    ((ngx_rtmp_conf_ctx_t *) cf->ctx)->srv_conf[module.ctx_index]
+    ngx_stream_conf_get_module_srv_conf(cf, module)
 #define ngx_rtmp_conf_get_module_app_conf(cf, module)                        \
     ((ngx_rtmp_conf_ctx_t *) cf->ctx)->app_conf[module.ctx_index]
 

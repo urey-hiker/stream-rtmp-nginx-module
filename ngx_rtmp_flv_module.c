@@ -59,14 +59,11 @@ static u_char                           ngx_rtmp_flv_header[
 
 
 static ngx_rtmp_module_t  ngx_rtmp_flv_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_flv_postconfiguration,         /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
     NULL,                                   /* merge server configuration */
-    NULL,                                   /* create app configuration */
-    NULL                                    /* merge app configuration */
 };
 
 

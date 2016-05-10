@@ -114,78 +114,77 @@ static ngx_command_t  ngx_rtmp_notify_commands[] = {
       NULL },
 
     { ngx_string("on_publish"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_play"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_publish_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_play_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_record_done"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|
-                         NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("on_update"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_on_app_event,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("notify_method"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_rtmp_notify_method,
       NGX_RTMP_APP_CONF_OFFSET,
       0,
       NULL },
 
     { ngx_string("notify_update_timeout"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_notify_app_conf_t, update_timeout),
       NULL },
 
     { ngx_string("notify_update_strict"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_notify_app_conf_t, update_strict),
       NULL },
 
     { ngx_string("notify_relay_redirect"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_notify_app_conf_t, relay_redirect),
@@ -196,14 +195,11 @@ static ngx_command_t  ngx_rtmp_notify_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_notify_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_notify_postconfiguration,      /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     ngx_rtmp_notify_create_srv_conf,        /* create server configuration */
-    ngx_rtmp_notify_merge_srv_conf,         /* merge server configuration */
-    ngx_rtmp_notify_create_app_conf,        /* create app configuration */
-    ngx_rtmp_notify_merge_app_conf          /* merge app configuration */
+    ngx_rtmp_notify_merge_srv_conf          /* merge server configuration */
 };
 
 
@@ -219,7 +215,9 @@ ngx_module_t  ngx_rtmp_notify_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_notify_create_app_conf,
+    (uintptr_t)ngx_rtmp_notify_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 
@@ -1201,7 +1199,7 @@ ngx_rtmp_notify_update(ngx_event_t *e)
     ngx_url_t                  *url;
 
     c = e->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
 
     nacf = ngx_rtmp_get_module_app_conf(s, ngx_rtmp_notify_module);
 

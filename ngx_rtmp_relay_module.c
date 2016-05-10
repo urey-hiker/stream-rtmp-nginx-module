@@ -6,8 +6,11 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+
+
 #include "ngx_rtmp_relay_module.h"
 #include "ngx_rtmp_cmd_module.h"
+#include "ngx_rtmp.h"
 
 
 static ngx_rtmp_publish_pt          next_publish;
@@ -95,28 +98,28 @@ static ngx_command_t  ngx_rtmp_relay_commands[] = {
       NULL },
 
     { ngx_string("relay_buffer"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_relay_app_conf_t, buflen),
       NULL },
 
     { ngx_string("push_reconnect"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_relay_app_conf_t, push_reconnect),
       NULL },
 
     { ngx_string("pull_reconnect"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_relay_app_conf_t, pull_reconnect),
       NULL },
 
     { ngx_string("session_relay"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_relay_app_conf_t, session_relay),
@@ -128,14 +131,11 @@ static ngx_command_t  ngx_rtmp_relay_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_relay_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_relay_postconfiguration,       /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
-    NULL,                                   /* merge server configuration */
-    ngx_rtmp_relay_create_app_conf,         /* create app configuration */
-    ngx_rtmp_relay_merge_app_conf           /* merge app configuration */
+    NULL                                    /* merge server configuration */
 };
 
 
@@ -151,7 +151,9 @@ ngx_module_t  ngx_rtmp_relay_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_relay_create_app_conf,
+    (uintptr_t)ngx_rtmp_relay_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 
@@ -484,9 +486,8 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     if (addr_ctx == NULL) {
         goto clear;
     }
-    addr_conf->ctx = addr_ctx;
-    addr_ctx->main_conf = cctx->main_conf;
-    addr_ctx->srv_conf  = cctx->srv_conf;
+    addr_conf->ctx = addr_ctx->stream_ctx;
+    addr_ctx->stream_ctx = cctx->stream_ctx;
     ngx_str_set(&addr_conf->addr_text, "ngx-relay");
 
     rs = ngx_rtmp_init_session(c, addr_conf);
@@ -522,8 +523,6 @@ ngx_rtmp_relay_create_remote_ctx(ngx_rtmp_session_t *s, ngx_str_t* name,
     ngx_rtmp_conf_ctx_t         cctx;
 
     cctx.app_conf = s->app_conf;
-    cctx.srv_conf = s->srv_conf;
-    cctx.main_conf = s->main_conf;
 
     return ngx_rtmp_relay_create_connection(&cctx, name, target);
 }
@@ -1597,52 +1596,6 @@ ngx_rtmp_relay_push_pull(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 static ngx_int_t
 ngx_rtmp_relay_init_process(ngx_cycle_t *cycle)
 {
-#if !(NGX_WIN32)
-    ngx_rtmp_core_main_conf_t  *cmcf = ngx_rtmp_core_main_conf;
-    ngx_rtmp_core_srv_conf_t  **pcscf, *cscf;
-    ngx_rtmp_core_app_conf_t  **pcacf, *cacf;
-    ngx_rtmp_relay_app_conf_t  *racf;
-    ngx_uint_t                  n, m, k;
-    ngx_rtmp_relay_static_t    *rs;
-    ngx_rtmp_listen_t          *lst;
-    ngx_event_t               **pevent, *event;
-
-    if (cmcf == NULL || cmcf->listen.nelts == 0) {
-        return NGX_OK;
-    }
-
-    /* only first worker does static pulling */
-
-    if (ngx_process_slot) {
-        return NGX_OK;
-    }
-
-    lst = cmcf->listen.elts;
-
-    pcscf = cmcf->servers.elts;
-    for (n = 0; n < cmcf->servers.nelts; ++n, ++pcscf) {
-
-        cscf = *pcscf;
-        pcacf = cscf->applications.elts;
-
-        for (m = 0; m < cscf->applications.nelts; ++m, ++pcacf) {
-
-            cacf = *pcacf;
-            racf = cacf->app_conf[ngx_rtmp_relay_module.ctx_index];
-            pevent = racf->static_events.elts;
-
-            for (k = 0; k < racf->static_events.nelts; ++k, ++pevent) {
-                event = *pevent;
-
-                rs = event->data;
-                rs->cctx = *lst->ctx;
-                rs->cctx.app_conf = cacf->app_conf;
-
-                ngx_post_event(event, &ngx_rtmp_init_queue);
-            }
-        }
-    }
-#endif
     return NGX_OK;
 }
 

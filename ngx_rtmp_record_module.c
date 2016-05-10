@@ -59,80 +59,70 @@ static ngx_conf_bitmask_t  ngx_rtmp_record_mask[] = {
 static ngx_command_t  ngx_rtmp_record_commands[] = {
 
     { ngx_string("record"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_1MORE,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_1MORE,
       ngx_conf_set_bitmask_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, flags),
       ngx_rtmp_record_mask },
 
     { ngx_string("record_path"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_str_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, path),
       NULL },
 
     { ngx_string("record_suffix"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_str_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, suffix),
       NULL },
 
     { ngx_string("record_unique"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, unique),
       NULL },
 
     { ngx_string("record_append"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, append),
       NULL },
 
     { ngx_string("record_lock"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, lock_file),
       NULL },
 
     { ngx_string("record_max_size"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_size_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, max_size),
       NULL },
 
     { ngx_string("record_max_frames"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_size_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, max_frames),
       NULL },
 
     { ngx_string("record_interval"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_msec_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, interval),
       NULL },
 
     { ngx_string("record_notify"),
-      NGX_RTMP_MAIN_CONF|NGX_RTMP_SRV_CONF|NGX_RTMP_APP_CONF|
-                         NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
+      NGX_RTMP_APP_CONF|NGX_RTMP_REC_CONF|NGX_CONF_TAKE1,
       ngx_conf_set_flag_slot,
       NGX_RTMP_APP_CONF_OFFSET,
       offsetof(ngx_rtmp_record_app_conf_t, notify),
@@ -151,14 +141,11 @@ static ngx_command_t  ngx_rtmp_record_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_record_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_record_postconfiguration,      /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
-    NULL,                                   /* merge server configuration */
-    ngx_rtmp_record_create_app_conf,        /* create app configuration */
-    ngx_rtmp_record_merge_app_conf          /* merge app configuration */
+    NULL                                    /* merge server configuration */
 };
 
 
@@ -174,7 +161,9 @@ ngx_module_t  ngx_rtmp_record_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_record_create_app_conf,
+    (uintptr_t)ngx_rtmp_record_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 
@@ -1195,7 +1184,6 @@ ngx_rtmp_record_recorder(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_int_t                   i;
     ngx_str_t                  *value;
     ngx_conf_t                  save;
-    ngx_rtmp_module_t          *module;
     ngx_rtmp_core_app_conf_t   *cacf, **pcacf, *rcacf;
     ngx_rtmp_record_app_conf_t *racf, **pracf, *rracf;
     ngx_rtmp_conf_ctx_t        *ctx, *pctx;
@@ -1213,10 +1201,9 @@ ngx_rtmp_record_recorder(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     pctx = cf->ctx;
 
-    ctx->main_conf = pctx->main_conf;
-    ctx->srv_conf  = pctx->srv_conf;
+    ctx->stream_ctx = pctx->stream_ctx;
 
-    ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_rtmp_max_module);
+    ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_stream_max_module);
     if (ctx->app_conf == NULL) {
         return NGX_CONF_ERROR;
     }
@@ -1226,14 +1213,18 @@ ngx_rtmp_record_recorder(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
             continue;
         }
 
-        module = ngx_modules[i]->ctx;
+        if (ngx_modules[i]->spare_hook0) {
+            continue;
+        }
 
-        if (module->create_app_conf) {
-            ctx->app_conf[ngx_modules[i]->ctx_index] =
-                                module->create_app_conf(cf);
-            if (ctx->app_conf[ngx_modules[i]->ctx_index] == NULL) {
-                return NGX_CONF_ERROR;
-            }
+        ngx_rtmp_create_app_pt create_app_conf =
+                (ngx_rtmp_create_app_pt)ngx_modules[i]->spare_hook0;
+
+        ctx->app_conf[ngx_modules[i]->ctx_index] =
+                create_app_conf(cf);
+
+        if (ctx->app_conf[ngx_modules[i]->ctx_index] == NULL) {
+            return NGX_CONF_ERROR;
         }
     }
 

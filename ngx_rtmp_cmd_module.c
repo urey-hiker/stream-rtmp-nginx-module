@@ -67,14 +67,11 @@ static ngx_int_t ngx_rtmp_cmd_postconfiguration(ngx_conf_t *cf);
 
 
 static ngx_rtmp_module_t  ngx_rtmp_cmd_module_ctx = {
-    NULL,                                   /* preconfiguration */
     ngx_rtmp_cmd_postconfiguration,         /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */
     NULL,                                   /* create server configuration */
     NULL,                                   /* merge server configuration */
-    NULL,                                   /* create app configuration */
-    NULL                                    /* merge app configuration */
 };
 
 

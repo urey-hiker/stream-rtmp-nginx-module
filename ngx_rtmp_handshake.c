@@ -374,7 +374,7 @@ ngx_rtmp_handshake_recv(ngx_event_t *rev)
     ngx_buf_t                  *b;
 
     c = rev->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
 
     if (c->destroyed) {
         return;
@@ -489,7 +489,7 @@ ngx_rtmp_handshake_send(ngx_event_t *wev)
     ngx_buf_t                  *b;
 
     c = wev->data;
-    s = c->data;
+    s = ngx_rtmp_get_session(c);
 
     if (c->destroyed) {
         return;
