@@ -490,6 +490,10 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     addr_conf->ctx = addr_ctx->stream_ctx;
     ngx_str_set(&addr_conf->addr_text, "ngx-relay");
 
+    if (ngx_rtmp_stream_init_connection(c, addr_conf) != NGX_OK) {
+        return NULL;
+    }
+
     rs = ngx_rtmp_init_session(c, addr_conf);
     if (rs == NULL) {
         /* no need to destroy pool */

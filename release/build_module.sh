@@ -21,7 +21,7 @@ if [ "$(uname)" == "Darwin" ]; then
 	brew link openssl --force
 fi
 
-version=`ls ../nginx-1.* | awk -F\- '{print $2}' | awk -F'.tar.gz' '{print $1}'`
+version=`ls ../ | grep nginx-1 | awk -F\- '{print $2}'`
 module=$(cd ../ && pwd)
 nginx_path=$(cd ../nginx-$version && pwd)
 

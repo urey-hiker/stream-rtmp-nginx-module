@@ -346,6 +346,8 @@ char* ngx_rtmp_user_message_type(uint16_t evt);
 #endif
 
 void ngx_rtmp_init_connection(ngx_connection_t *c);
+ngx_int_t ngx_rtmp_stream_init_connection(ngx_connection_t *c,
+    ngx_rtmp_addr_conf_t *addr_conf);
 ngx_rtmp_session_t * ngx_rtmp_init_session(ngx_connection_t *c,
      ngx_rtmp_addr_conf_t *addr_conf);
 void ngx_rtmp_finalize_session(ngx_rtmp_session_t *s);

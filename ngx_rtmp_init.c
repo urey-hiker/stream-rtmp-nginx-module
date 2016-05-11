@@ -31,7 +31,6 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
     ngx_stream_in6_addr_t        *addr6;
 #endif
     ngx_rtmp_core_srv_conf_t     *cscf;
-    ngx_stream_session_t         *stream;
 
     ++ngx_rtmp_naccepted;
 
@@ -125,10 +124,6 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
         return;
     }
 
-    stream = (ngx_stream_session_t *)c->data;
-
-    ngx_stream_set_ctx(stream, s, ngx_rtmp_core_module);
-
     /* only auto-pushed connections are
      * done through unix socket */
 
@@ -145,10 +140,45 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
 }
 
 
+ngx_int_t
+ngx_rtmp_stream_init_connection(ngx_connection_t *c,
+    ngx_rtmp_addr_conf_t *addr_conf)
+{
+    ngx_stream_session_t         *s;
+
+    s = ngx_pcalloc(c->pool, sizeof(ngx_stream_session_t));
+    if (s == NULL) {
+        ngx_stream_close_connection(c);
+        return NGX_ERROR;
+    }
+
+    s->signature = NGX_STREAM_MODULE;
+    s->main_conf = addr_conf->ctx->main_conf;
+    s->srv_conf = addr_conf->ctx->srv_conf;
+
+    s->connection = c;
+    c->data = s;
+
+    c->log->connection = c->number;
+    c->log->handler = NULL;
+    c->log->action = NULL;
+    c->log_error = NGX_ERROR_INFO;
+
+    s->ctx = ngx_pcalloc(c->pool, sizeof(void *) * ngx_stream_max_module);
+    if (s->ctx == NULL) {
+        ngx_stream_close_connection(c);
+        return NGX_ERROR;
+    }
+
+    return NGX_OK;
+}
+
+
 ngx_rtmp_session_t *
 ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
 {
     ngx_rtmp_session_t             *s;
+    ngx_stream_session_t           *stream;
     ngx_rtmp_core_srv_conf_t       *cscf;
 
     s = ngx_pcalloc(c->pool, sizeof(ngx_rtmp_session_t) +
@@ -197,6 +227,10 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
         ngx_rtmp_finalize_session(s);
         return NULL;
     }
+
+    stream = (ngx_stream_session_t *)c->data;
+
+    ngx_stream_set_ctx(stream, s, ngx_rtmp_core_module);
 
     return s;
 }

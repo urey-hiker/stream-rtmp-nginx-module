@@ -114,6 +114,8 @@ ngx_rtmp_auto_push_init_process(ngx_cycle_t *cycle)
         return NGX_OK;
     }
 
+    ngx_rtmp_auto_push_module.ctx_index = ngx_rtmp_core_module.ctx_index;
+
     apcf = (ngx_rtmp_auto_push_conf_t *) ngx_get_conf(cycle->conf_ctx,
                                                     ngx_rtmp_auto_push_module);
     if (apcf->auto_push == 0) {
@@ -136,7 +138,7 @@ ngx_rtmp_auto_push_init_process(ngx_cycle_t *cycle)
     ls = cycle->listening.elts;
     lss = NULL;
     for (n = 0; n < cycle->listening.nelts; ++n, ++ls) {
-        if (ls->handler == ngx_rtmp_init_connection) {
+        if (ls->handler == ngx_stream_init_connection) {
             lss = ls;
             break;
         }
@@ -453,7 +455,7 @@ ngx_rtmp_auto_push_publish(ngx_rtmp_session_t *s, ngx_rtmp_publish_t *v)
     ngx_rtmp_auto_push_conf_t      *apcf;
     ngx_rtmp_auto_push_ctx_t       *ctx;
 
-    if (s->auto_pushed || (s->relay && !s->static_relay)) {
+    if (s->auto_pushed) {
         goto next;
     }
 
