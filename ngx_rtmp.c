@@ -41,7 +41,7 @@ static ngx_rtmp_module_t  ngx_rtmp_module_ctx = {
 };
 
 
-ngx_module_t  ngx_rtmp_module = {
+ngx_module_t  ngx_stream_rtmp_module = {
     NGX_MODULE_V1,
     &ngx_rtmp_module_ctx,                  /* module context */
     ngx_rtmp_commands,                     /* module directives */

@@ -1,7 +1,7 @@
 ngx_addon_name="ngx_stream_rtmp_module"
 
 RTMP_CORE_MODULES="                                         \
-                ngx_rtmp_module                             \
+                ngx_stream_rtmp_module                      \
                 ngx_rtmp_core_module                        \
                 ngx_rtmp_cmd_module                         \
                 ngx_rtmp_codec_module                       \
