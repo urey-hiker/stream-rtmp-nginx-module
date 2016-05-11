@@ -6,8 +6,6 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
-#include <ngx_stream.h>
-#include <nginx/src/stream/ngx_stream.h>
 
 
 #include "ngx_rtmp.h"

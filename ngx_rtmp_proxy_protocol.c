@@ -6,7 +6,8 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
-#include <nginx.h>
+
+
 #include "ngx_rtmp_proxy_protocol.h"
 
 

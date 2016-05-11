@@ -6,10 +6,11 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
-#include "ngx_rtmp.h"
-
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
+
+
+#include "ngx_rtmp.h"
 
 
 static void ngx_rtmp_handshake_send(ngx_event_t *wev);
