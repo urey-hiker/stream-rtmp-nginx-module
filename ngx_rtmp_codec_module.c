@@ -8,6 +8,7 @@
 #include <ngx_core.h>
 
 
+#include "ngx_rtmp_version.h"
 #include "ngx_rtmp_codec_module.h"
 #include "ngx_rtmp_live_module.h"
 #include "ngx_rtmp_cmd_module.h"
@@ -583,7 +584,7 @@ ngx_rtmp_codec_reconstruct_meta(ngx_rtmp_session_t *s)
 
         { NGX_RTMP_AMF_STRING,
           ngx_string("Server"),
-          "NGINX RTMP (github.com/arut/nginx-rtmp-module)", 0 },
+          "NGINX STREAM RTMP SERVER("NGINX_RTMP_VERSION")", 0 },
 
         { NGX_RTMP_AMF_NUMBER,
           ngx_string("width"),

@@ -1,4 +1,4 @@
-# NGINX-based Media Streaming Server
+# nginx-stream-module based RTMP Media Streaming Server 
 ## stream-rtmp-nginx-module
 
 
@@ -94,7 +94,7 @@ rtmp_auto_push directive.
 
             listen 1935;
             rtmp;
-            chunk_size 4000;
+            rtmp_chunk_size 4000;
 
             # TV mode: one publisher, many subscribers
             application mytv {
