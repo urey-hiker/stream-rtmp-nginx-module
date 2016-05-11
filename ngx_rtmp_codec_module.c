@@ -86,7 +86,9 @@ ngx_module_t  ngx_rtmp_codec_module = {
     NULL,                                   /* exit thread */
     NULL,                                   /* exit process */
     NULL,                                   /* exit master */
-    NGX_MODULE_V1_PADDING
+    (uintptr_t)ngx_rtmp_codec_create_app_conf,
+    (uintptr_t)ngx_rtmp_codec_merge_app_conf,
+    NGX_RTMP_MODULE_V1_PADDING
 };
 
 

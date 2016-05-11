@@ -6,6 +6,7 @@
 
 #include <ngx_config.h>
 #include <ngx_core.h>
+#include <nginx/src/stream/ngx_stream.h>
 
 
 #include "ngx_rtmp_relay_module.h"
@@ -486,8 +487,8 @@ ngx_rtmp_relay_create_connection(ngx_rtmp_conf_ctx_t *cctx, ngx_str_t* name,
     if (addr_ctx == NULL) {
         goto clear;
     }
-    addr_conf->ctx = addr_ctx->stream_ctx;
     addr_ctx->stream_ctx = cctx->stream_ctx;
+    addr_conf->ctx = addr_ctx->stream_ctx;
     ngx_str_set(&addr_conf->addr_text, "ngx-relay");
 
     rs = ngx_rtmp_init_session(c, addr_conf);
@@ -521,7 +522,12 @@ ngx_rtmp_relay_create_remote_ctx(ngx_rtmp_session_t *s, ngx_str_t* name,
         ngx_rtmp_relay_target_t *target)
 {
     ngx_rtmp_conf_ctx_t         cctx;
+    ngx_stream_conf_ctx_t stream_ctx;
 
+    stream_ctx.main_conf = s->main_conf;
+    stream_ctx.srv_conf = s->srv_conf;
+
+    cctx.stream_ctx = &stream_ctx;
     cctx.app_conf = s->app_conf;
 
     return ngx_rtmp_relay_create_connection(&cctx, name, target);

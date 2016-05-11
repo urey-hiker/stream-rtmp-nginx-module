@@ -555,7 +555,7 @@ ngx_rtmp_log_merge_app_conf(ngx_conf_t *cf, void *parent, void *child)
     log->disk_full_time = 0;
     log->error_log_time = 0;
 
-    lmcf = ngx_rtmp_conf_get_module_main_conf(cf, ngx_rtmp_log_module);
+    lmcf = ngx_rtmp_appconf_get_module_main_conf(cf, ngx_rtmp_log_module);
     fmt = lmcf->formats.elts;
 
     log->format = &fmt[0];

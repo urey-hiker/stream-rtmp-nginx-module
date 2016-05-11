@@ -12,15 +12,14 @@
 
 
 static void *ngx_rtmp_core_create_main_conf(ngx_conf_t *cf);
+static char *ngx_rtmp_core_init_main_conf(ngx_conf_t *cf,
+       void *conf);
 static void *ngx_rtmp_core_create_srv_conf(ngx_conf_t *cf);
 static char *ngx_rtmp_core_merge_srv_conf(ngx_conf_t *cf, void *parent,
     void *child);
 static void *ngx_rtmp_core_create_app_conf(ngx_conf_t *cf);
 static char *ngx_rtmp_core_merge_app_conf(ngx_conf_t *cf, void *parent,
     void *child);
-static void ngx_rtmp_core_handler(ngx_stream_session_t *s);
-static char *ngx_rtmp_core_rtmp(ngx_conf_t *cf, ngx_command_t *cmd,
-    void *conf);
 static char *ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd,
     void *conf);
 ngx_int_t ngx_rtmp_init_events(ngx_conf_t *cf,
@@ -29,14 +28,7 @@ ngx_int_t ngx_rtmp_init_events(ngx_conf_t *cf,
 
 static ngx_command_t  ngx_rtmp_core_commands[] = {
 
-    { ngx_string("rtmp"),
-      NGX_RTMP_SRV_CONF|NGX_CONF_NOARGS,
-      ngx_rtmp_core_rtmp,
-      0,
-      0,
-      NULL },
-
-    { ngx_string("rtmp_application"),
+    { ngx_string("application"),
       NGX_RTMP_SRV_CONF|NGX_CONF_BLOCK|NGX_CONF_TAKE1,
       ngx_rtmp_core_application,
       NGX_RTMP_SRV_CONF_OFFSET,
@@ -149,7 +141,7 @@ static ngx_command_t  ngx_rtmp_core_commands[] = {
 static ngx_rtmp_module_t  ngx_rtmp_core_module_ctx = {
     NULL,                                   /* postconfiguration */
     ngx_rtmp_core_create_main_conf,         /* create main configuration */
-    NULL,                                   /* init main configuration */
+    ngx_rtmp_core_init_main_conf,           /* init main configuration */
     ngx_rtmp_core_create_srv_conf,          /* create server configuration */
     ngx_rtmp_core_merge_srv_conf,           /* merge server configuration */
 };
@@ -190,6 +182,13 @@ ngx_rtmp_core_create_main_conf(ngx_conf_t *cf)
     }
 
     return cmcf;
+}
+
+
+static char *
+ngx_rtmp_core_init_main_conf(ngx_conf_t *cf, void *conf)
+{
+    return NGX_CONF_OK;
 }
 
 
@@ -300,26 +299,6 @@ ngx_rtmp_core_merge_app_conf(ngx_conf_t *cf, void *parent, void *child)
 }
 
 
-static void
-ngx_rtmp_core_handler(ngx_stream_session_t *s)
-{
-    ngx_rtmp_init_connection(s->connection);
-}
-
-
-static char *
-ngx_rtmp_core_rtmp(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
-{
-    ngx_stream_core_srv_conf_t  *cscf;
-
-    cscf = ngx_stream_conf_get_module_srv_conf(cf, ngx_stream_core_module);
-
-    cscf->handler = ngx_rtmp_core_handler;
-
-    return NGX_CONF_OK;
-}
-
-
 static char *
 ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 {
@@ -327,6 +306,8 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     ngx_int_t                   i;
     ngx_str_t                  *value;
     ngx_conf_t                  save;
+    void                       *prev_app_conf;
+    void                       *child_app_conf;
     ngx_stream_conf_ctx_t      *pctx;
     ngx_rtmp_conf_ctx_t        *ctx;
     ngx_rtmp_core_srv_conf_t   *cscf;
@@ -338,6 +319,7 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
     }
 
     pctx = cf->ctx;
+    ctx->cf = cf;
     ctx->stream_ctx = pctx;
 
     ctx->app_conf = ngx_pcalloc(cf->pool, sizeof(void *) * ngx_stream_max_module);
@@ -345,24 +327,29 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
         return NGX_CONF_ERROR;
     }
 
+    save = *cf;
+    cf->ctx = ctx;
+    cf->cmd_type = NGX_RTMP_APP_CONF;
+
     for (i = 0; cf->cycle->modules[i]; i++) {
         if (cf->cycle->modules[i]->type != NGX_RTMP_MODULE) {
             continue;
         }
 
         ngx_rtmp_create_app_pt create_app_conf =
-                (ngx_rtmp_create_app_pt)cf->cycle->modules[i]->spare_hook0;
+            (ngx_rtmp_create_app_pt)cf->cycle->modules[i]->spare_hook0;
+
 
         if (create_app_conf == NULL) {
             continue;
         }
 
-        ctx->app_conf[cf->cycle->modules[i]->ctx_index] =
-                create_app_conf(cf);
-
-        if (ctx->app_conf[cf->cycle->modules[i]->ctx_index] == NULL) {
+        child_app_conf = create_app_conf(cf);
+        if (child_app_conf == NULL) {
             return NGX_CONF_ERROR;
         }
+
+        ctx->app_conf[cf->cycle->modules[i]->ctx_index] = child_app_conf;
     }
 
     cacf = ctx->app_conf[ngx_rtmp_core_module.ctx_index];
@@ -380,13 +367,42 @@ ngx_rtmp_core_application(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
 
     *cacfp = cacf;
 
-    save = *cf;
-    cf->ctx = ctx;
-    cf->cmd_type = NGX_RTMP_APP_CONF;
-
     rv = ngx_conf_parse(cf, NULL);
 
-    *cf= save;
+    if (rv != NGX_CONF_OK) {
+        *cf = save;
+        return rv;
+    }
+
+    /* merge app conf */
+    for (i = 0; cf->cycle->modules[i]; i++) {
+        if (cf->cycle->modules[i]->type != NGX_RTMP_MODULE) {
+            continue;
+        }
+
+        ngx_rtmp_create_app_pt create_app_conf =
+                (ngx_rtmp_create_app_pt)cf->cycle->modules[i]->spare_hook0;
+
+        ngx_rtmp_merge_app_pt merge_app_conf =
+                (ngx_rtmp_merge_app_pt)cf->cycle->modules[i]->spare_hook1;
+
+        if (create_app_conf == NULL || merge_app_conf == NULL) {
+            continue;
+        }
+
+        if ((prev_app_conf = create_app_conf(cf)) == NULL) {
+            return NGX_CONF_ERROR;
+        }
+
+        child_app_conf = ctx->app_conf[cf->cycle->modules[i]->ctx_index];
+
+        if (merge_app_conf(cf, prev_app_conf, child_app_conf)
+            != NGX_CONF_OK) {
+            return NGX_CONF_ERROR;
+        }
+    }
+
+    *cf = save;
 
     return rv;
 }

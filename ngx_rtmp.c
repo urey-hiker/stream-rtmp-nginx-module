@@ -11,33 +11,41 @@
 #include "ngx_rtmp.h"
 
 
+static char *ngx_rtmp(ngx_conf_t *cf, ngx_command_t *cmd,
+       void *conf);
 static ngx_int_t ngx_rtmp_init_process(ngx_cycle_t *cycle);
 
 
-#if (nginx_version >= 1007011)
-ngx_queue_t                         ngx_rtmp_init_queue;
-#elif (nginx_version >= 1007005)
-ngx_thread_volatile ngx_queue_t     ngx_rtmp_init_queue;
-#else
-ngx_thread_volatile ngx_event_t    *ngx_rtmp_init_queue;
-#endif
+ngx_queue_t       ngx_rtmp_init_queue;
 
 
-ngx_uint_t  ngx_rtmp_max_module;
+static ngx_command_t  ngx_rtmp_commands[] = {
+
+    { ngx_string("rtmp"),
+      NGX_RTMP_SRV_CONF|NGX_CONF_NOARGS,
+      ngx_rtmp,
+      0,
+      0,
+      NULL },
+
+      ngx_null_command
+};
 
 
-static ngx_core_module_t  ngx_rtmp_module_ctx = {
-    ngx_string("rtmp"),
-    NULL,
-    NULL
+static ngx_rtmp_module_t  ngx_rtmp_module_ctx = {
+    NULL,         /* postconfiguration */
+    NULL,         /* create main configuration */
+    NULL,         /* init main configuration */
+    NULL,         /* create server configuration */
+    NULL,         /* merge server configuration */
 };
 
 
 ngx_module_t  ngx_rtmp_module = {
     NGX_MODULE_V1,
     &ngx_rtmp_module_ctx,                  /* module context */
-    NULL,                                  /* module directives */
-    NGX_CORE_MODULE,                       /* module type */
+    ngx_rtmp_commands,                     /* module directives */
+    NGX_RTMP_MODULE,                       /* module type */
     NULL,                                  /* init master */
     NULL,                                  /* init module */
     ngx_rtmp_init_process,                 /* init process */
@@ -202,11 +210,30 @@ ngx_rtmp_rmemcpy(void *dst, const void* src, size_t n)
 }
 
 
+static void
+ngx_rtmp_handler(ngx_stream_session_t *s)
+{
+    ngx_rtmp_init_connection(s->connection);
+}
+
+
+static char *
+ngx_rtmp(ngx_conf_t *cf, ngx_command_t *cmd, void *conf)
+{
+    ngx_stream_core_srv_conf_t  *cscf;
+
+    cscf = ngx_stream_conf_get_module_srv_conf(cf, ngx_stream_core_module);
+
+    cscf->handler = ngx_rtmp_handler;
+
+    return NGX_CONF_OK;
+}
+
+
 static ngx_int_t
 ngx_rtmp_init_process(ngx_cycle_t *cycle)
 {
-#if (nginx_version >= 1007005)
     ngx_queue_init(&ngx_rtmp_init_queue);
-#endif
+
     return NGX_OK;
 }

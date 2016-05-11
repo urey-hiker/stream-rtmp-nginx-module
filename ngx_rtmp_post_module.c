@@ -57,7 +57,5 @@ ngx_rtmp_post_postconfiguration(ngx_conf_t *cf)
         return NGX_ERROR;
     }
 
-    ngx_rtmp_max_module = ngx_stream_max_module;
-
     return NGX_OK;
 }

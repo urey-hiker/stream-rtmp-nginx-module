@@ -26,6 +26,7 @@ typedef unsigned __int8     uint8_t;
 
 
 typedef struct {
+    ngx_conf_t             *cf;
     ngx_stream_conf_ctx_t  *stream_ctx;
     void                  **app_conf;
 } ngx_rtmp_conf_ctx_t;
@@ -138,6 +139,7 @@ typedef struct {
     ngx_event_t             close;
 
     void                  **ctx;
+
     void                  **main_conf;
     void                  **srv_conf;
     void                  **app_conf;
@@ -294,6 +296,7 @@ typedef ngx_stream_module_t ngx_rtmp_module_t;
 
 
 typedef void *(*ngx_rtmp_create_app_pt)(ngx_conf_t *);
+typedef char *(*ngx_rtmp_merge_app_pt)(ngx_conf_t *, void *, void *);
 
 
 #define NGX_RTMP_SIGNATURE_MODULE       0x504D5452     /* "RTMP" */
@@ -332,6 +335,9 @@ typedef void *(*ngx_rtmp_create_app_pt)(ngx_conf_t *);
     ngx_stream_conf_get_module_srv_conf(cf, module)
 #define ngx_rtmp_conf_get_module_app_conf(cf, module)                        \
     ((ngx_rtmp_conf_ctx_t *) cf->ctx)->app_conf[module.ctx_index]
+
+#define ngx_rtmp_appconf_get_module_main_conf(cf, module)                    \
+    ((ngx_stream_conf_ctx_t *) ((ngx_rtmp_conf_ctx_t *)cf->ctx)->stream_ctx)->main_conf[module.ctx_index]
 
 
 #ifdef NGX_DEBUG

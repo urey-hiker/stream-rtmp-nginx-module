@@ -7,6 +7,7 @@
 #include <ngx_config.h>
 #include <ngx_core.h>
 #include <ngx_stream.h>
+#include <nginx/src/stream/ngx_stream.h>
 
 
 #include "ngx_rtmp.h"
@@ -163,7 +164,6 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
 
     s->main_conf = addr_conf->ctx->main_conf;
     s->srv_conf = addr_conf->ctx->srv_conf;
-
     s->addr_text = &addr_conf->addr_text;
 
     s->connection = c;
