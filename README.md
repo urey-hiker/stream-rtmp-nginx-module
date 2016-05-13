@@ -57,7 +57,7 @@ After compiling set nginx error.log level to *debug* in nginx.conf
 
 ### version require
 
-nginx > 1.9.0 for stream support
+nginx > 1.9.11 for dynamic modules and stream support
 
 ### Windows limitations
 
