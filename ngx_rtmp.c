@@ -33,11 +33,12 @@ static ngx_command_t  ngx_rtmp_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_module_ctx = {
+    NULL,
     NULL,         /* postconfiguration */
     NULL,         /* create main configuration */
     NULL,         /* init main configuration */
     NULL,         /* create server configuration */
-    NULL,         /* merge server configuration */
+    NULL         /* merge server configuration */
 };
 
 

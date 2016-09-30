@@ -61,6 +61,7 @@ static u_char                           ngx_rtmp_flv_header[
 
 
 static ngx_rtmp_module_t  ngx_rtmp_flv_module_ctx = {
+    NULL,
     ngx_rtmp_flv_postconfiguration,         /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */

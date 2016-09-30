@@ -51,7 +51,7 @@ ngx_rtmp_init_connection(ngx_connection_t *c)
          */
 
         if (ngx_connection_local_sockaddr(c, NULL, 0) != NGX_OK) {
-            ngx_stream_close_connection(c);
+            ngx_rtmp_close_connection(c);
             return;
         }
 
@@ -148,7 +148,7 @@ ngx_rtmp_stream_init_connection(ngx_connection_t *c,
 
     s = ngx_pcalloc(c->pool, sizeof(ngx_stream_session_t));
     if (s == NULL) {
-        ngx_stream_close_connection(c);
+        ngx_rtmp_close_connection(c);
         return NGX_ERROR;
     }
 
@@ -166,7 +166,7 @@ ngx_rtmp_stream_init_connection(ngx_connection_t *c,
 
     s->ctx = ngx_pcalloc(c->pool, sizeof(void *) * ngx_stream_max_module);
     if (s->ctx == NULL) {
-        ngx_stream_close_connection(c);
+        ngx_rtmp_close_connection(c);
         return NGX_ERROR;
     }
 
@@ -236,10 +236,37 @@ ngx_rtmp_init_session(ngx_connection_t *c, ngx_rtmp_addr_conf_t *addr_conf)
 }
 
 
-static void
+static ngx_inline void
 ngx_rtmp_close_connection(ngx_connection_t *c)
 {
-    ngx_stream_close_connection(c);
+    /*
+     * ngx_stream_close_connection(c);
+     */
+    ngx_pool_t  *pool;
+
+    ngx_log_debug1(NGX_LOG_DEBUG_STREAM, c->log, 0,
+                   "close stream connection: %d", c->fd);
+
+#if (NGX_STREAM_SSL)
+
+    if (c->ssl) {
+        if (ngx_ssl_shutdown(c) == NGX_AGAIN) {
+            c->ssl->handler = ngx_stream_close_connection;
+            return;
+        }
+    }
+
+#endif
+
+#if (NGX_STAT_STUB)
+    (void) ngx_atomic_fetch_add(ngx_stat_active, -1);
+#endif
+
+    pool = c->pool;
+
+    ngx_close_connection(c);
+
+    ngx_destroy_pool(pool);
 }
 
 

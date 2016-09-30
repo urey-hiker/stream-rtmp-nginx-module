@@ -410,6 +410,7 @@ static ngx_rtmp_mp4_descriptor_t        ngx_rtmp_mp4_descriptors[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_mp4_module_ctx = {
+    NULL,
     ngx_rtmp_mp4_postconfiguration,         /* postconfiguration */
     NULL,                                   /* create main configuration */
     NULL,                                   /* init main configuration */

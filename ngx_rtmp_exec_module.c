@@ -258,6 +258,7 @@ static ngx_command_t  ngx_rtmp_exec_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_exec_module_ctx = {
+    NULL,
     ngx_rtmp_exec_postconfiguration,        /* postconfiguration */
     ngx_rtmp_exec_create_main_conf,         /* create main configuration */
     ngx_rtmp_exec_init_main_conf,           /* init main configuration */

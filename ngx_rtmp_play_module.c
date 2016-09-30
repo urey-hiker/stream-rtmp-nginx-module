@@ -84,6 +84,7 @@ static ngx_command_t  ngx_rtmp_play_commands[] = {
 
 
 static ngx_rtmp_module_t  ngx_rtmp_play_module_ctx = {
+    NULL,
     ngx_rtmp_play_postconfiguration,        /* postconfiguration */
     ngx_rtmp_play_create_main_conf,         /* create main configuration */
     NULL,                                   /* init main configuration */
